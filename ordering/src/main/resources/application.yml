@@ -1,0 +1,19 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: xfood-ordering
+  data:
+    mongodb:
+      uri: mongodb://db-mongo:27017/xfood-ordering
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      retries: 10
+      bootstrap-servers: ${spring.kafka.bootstrap-servers}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false

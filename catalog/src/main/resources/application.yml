@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: xfood-catalog
+  data:
+    mongodb:
+      uri: mongodb://db-mongo:27017/xfood-catalog
+  kafka:
+    bootstrap-servers: kafka:9092
+    listener:
+      concurrency: 1
+    consumer:
+      group-id: catalog
+      bootstrap-servers: ${spring.kafka.bootstrap-servers}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      auto-offset-reset: earliest
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+

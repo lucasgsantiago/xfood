@@ -1,0 +1,74 @@
+version: "3.4"
+services:
+
+  db-mongo:
+    image: mongo:4.0
+    container_name: "db-mongo"
+    ports:
+      - 27017:27017
+    networks:
+      - xfood-network
+    command: --smallfiles
+    
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: "zookeeper"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - xfood-network
+      
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: "kafka"
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    networks:
+      - xfood-network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CREATE_TOPICS: "xfood-order-created:10:3"
+      
+  xfood-catalog:
+    image: xfood-catalog 
+    container_name: "xfood-catalog"
+    restart: always
+    build:
+      context: ./catalog
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - xfood-network
+    depends_on:
+      - db-mongo
+      
+  xfood-ordering:
+    image: xfood-ordering
+    container_name: "xfood-ordering"
+    restart: always
+    build:
+      context: ./ordering
+      dockerfile: Dockerfile
+    working_dir: /ordering
+    environment:
+      TZ: America/Sao_Paulo
+    ports:
+      - "8081:8081" 
+    command: mvn spring-boot:run
+    depends_on:
+      - db-mongo
+    networks:
+      - xfood-network
+      
+networks:
+  xfood-network:
+    driver: bridge
